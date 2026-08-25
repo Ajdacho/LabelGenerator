@@ -1,5 +1,6 @@
 /* ==============================================================================
  * Author: Filip Cieśla
+ * License: MIT
  *
  * Description:
  * LabelGeneratorGUI is a WinUI 3 desktop application designed to automate the

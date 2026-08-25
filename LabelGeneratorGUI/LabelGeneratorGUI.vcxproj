@@ -125,7 +125,8 @@
     <PostBuildEvent>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">xcopy /Y "$(SolutionDir)*.txt" "$(SolutionDir)$(Platform)\$(Configuration)\"
 
-xcopy /Y "$(SolutionDir)README.md" "$(SolutionDir)$(Platform)\$(Configuration)\"</Command>
+xcopy /Y "$(SolutionDir)README.md" "$(SolutionDir)$(Platform)\$(Configuration)\"
+xcopy /Y "$(SolutionDir)LICENSE" "$(SolutionDir)$(Platform)\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup Condition="'$(WindowsPackageType)'!='None' and Exists('Package.appxmanifest')">

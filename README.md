@@ -64,3 +64,9 @@ For detailed instructions on using and modifying the application, please refer t
 The application runs as a standalone desktop utility. To launch the program:
 1. Ensure all required dependency libraries and resources are located in the application directory alongside `LabelGeneratorGUI.exe`.
 2. Use the provided shortcut or run `LabelGeneratorGUI.exe` directly.
+
+---
+
+## 6. License
+
+This project is open-source and available under the terms of the **MIT License**. See the [LICENSE](LICENSE) file for more details.
