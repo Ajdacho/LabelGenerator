@@ -4,14 +4,13 @@
  * Description:
  * LabelGeneratorGUI is a WinUI 3 desktop application designed to automate the
  * generation of print-ready PDF product and care labels. It parses bulk data
- * directly from Excel spreadsheets and applies dynamic styling based on a
+ * via PowerShell Excel-to-CSV conversion and applies dynamic styling based on a
  * flexible JSON configuration. The software allows for advanced layout
- * customization and style overrides per customer and product type.
+ * customization and style overrides per customer and product type, featuring
+ * a custom-built native C++ PDF generation engine.
  *
  * Required External Libraries:
  * - nlohmann/json (for parsing config.json)
- * - OpenXLSX (for reading .xlsx spreadsheet data)
- * - libharu (for rendering and exporting PDF files)
  * ============================================================================== */
 
 #include "pch.h"

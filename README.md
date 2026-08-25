@@ -1,6 +1,6 @@
 # LabelGeneratorGUI - Technical Documentation
 
-**Version:** 08.26  
+**Version:** 1.0
 **Author:** Filip Cieśla  
 **Platform:** Windows 10/11 (Standalone / Loose Files Deployment)  
 **Framework:** Windows App SDK (WinUI 3) / C++ WinRT  

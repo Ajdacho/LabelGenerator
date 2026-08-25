@@ -3,7 +3,7 @@
 ======================================================
 
 Author: Filip Cieśla
-Version: 08.26
+Version: 1.0
 
 About the Software:
 LabelGeneratorGUI is a WinUI 3 desktop application designed to automate the generation of print-ready PDF product and care labels. It dynamically parses configuration and styling rules (such as material translations and customer style overrides) from a JSON file.
