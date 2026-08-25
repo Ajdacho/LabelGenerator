@@ -1,0 +1,186 @@
+<Window
+    x:Class="LabelGeneratorGUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Generator etykiet (v08.26)">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,20,0,20">
+            <StackPanel Spacing="6" HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                    <TextBlock Text="Generator etykiet" Style="{StaticResource TitleTextBlockStyle}"/>
+                    <Border Background="{ThemeResource AccentFillColorSecondaryBrush}" CornerRadius="6" Padding="8,2" VerticalAlignment="Center">
+                        <TextBlock Text="v08.26" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                    </Border>
+                </StackPanel>
+                <TextBlock Text="Skonfiguruj ścieżki i wygeneruj pliki PDF" Style="{StaticResource BodyTextBlockStyle}" Foreground="Gray" TextAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <InfoBar x:Name="ResultInfoBar" 
+                 Grid.Row="1"
+                 IsOpen="False" 
+                 IsClosable="True" 
+                 MaxWidth="750"
+                 HorizontalAlignment="Stretch"
+                 Margin="10,0">
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                <Button x:Name="ShowReportButton" 
+                        Content="Pokaż raport" 
+                        Click="ShowReportButton_Click" 
+                        Visibility="Collapsed"/>
+                <Button x:Name="OpenFolderButton" 
+                        Content="Otwórz folder" 
+                        Click="OpenFolderButton_Click" 
+                        Visibility="Collapsed"/>
+            </StackPanel>
+        </InfoBar>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,10">
+            <StackPanel Spacing="12" MaxWidth="750" HorizontalAlignment="Center">
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Plik z danymi (.xlsx / .csv)" FontWeight="SemiBold"/>
+                            <TextBox x:Name="dataFileTextBox" IsReadOnly="True" PlaceholderText="Nie wybrano pliku z danymi..."/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Przeglądaj..." VerticalAlignment="Bottom" Click="selectDataFileButton_Click"/>
+                    </Grid>
+                </Border>
+
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Folder z logotypami" FontWeight="SemiBold"/>
+                            <TextBox x:Name="logosFolderTextBox" IsReadOnly="True" PlaceholderText="Nie wybrano folderu z logotypami..."/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Przeglądaj..." VerticalAlignment="Bottom" Click="selectLogosFolderButton_Click"/>
+                    </Grid>
+                </Border>
+
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Folder z ikonami" FontWeight="SemiBold"/>
+                            <TextBox x:Name="iconsFolderTextBox" IsReadOnly="True" PlaceholderText="Nie wybrano folderu z ikonami..."/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Przeglądaj..." VerticalAlignment="Bottom" Click="selectIconsFolderButton_Click"/>
+                    </Grid>
+                </Border>
+
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16" BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Folder docelowy na gotowe pliki" FontWeight="SemiBold"/>
+                            <TextBox x:Name="outputFolderTextBox" IsReadOnly="True" PlaceholderText="Nie wybrano folderu wyjściowego..."/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Przeglądaj..." VerticalAlignment="Bottom" Click="selectOutputFolderButton_Click"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="3" MaxWidth="750" HorizontalAlignment="Stretch" Margin="20">
+            <Button x:Name="checkForUpdatesButton" 
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Bottom" 
+                    Click="checkForUpdatesButton_Click" 
+                    ToolTipService.ToolTip="Sprawdź aktualizacje" 
+                    Padding="8">
+                <Grid Width="20" Height="20">
+                    <SymbolIcon Symbol="Refresh" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <FontIcon x:Name="updateCheckmarkBadge"
+                              Glyph="&#xE73E;" 
+                              FontSize="12" 
+                              FontWeight="Bold"
+                              Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                              HorizontalAlignment="Right" 
+                              VerticalAlignment="Bottom" 
+                              Margin="0,0,-4,-4"
+                              Visibility="Collapsed"/>
+                </Grid>
+            </Button>
+            <StackPanel Spacing="10" HorizontalAlignment="Center" Width="240">
+                <ProgressBar x:Name="generationProgressBar" IsIndeterminate="True" Visibility="Collapsed"/>
+                <Button x:Name="generateButton" 
+                        Content="Generuj" 
+                        Style="{StaticResource AccentButtonStyle}" 
+                        HorizontalAlignment="Stretch" 
+                        Height="48" 
+                        FontSize="15"
+                        FontWeight="SemiBold"
+                        IsEnabled="False" 
+                        Click="generateButton_Click"/>
+            </StackPanel>
+            <Button x:Name="configButton" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Bottom" 
+                    Click="configButton_Click" 
+                    ToolTipService.ToolTip="Ustawienia generatora" 
+                    Padding="10">
+                <SymbolIcon Symbol="Setting"/>
+            </Button>
+        </Grid>
+
+        <ContentDialog x:Name="ConfigDialog" 
+                       Title="Ustawienia generatora" 
+                       PrimaryButtonText="Zapisz ustawienia" 
+                       CloseButtonText="Anuluj" 
+                       PrimaryButtonClick="ConfigDialog_PrimaryButtonClick">
+            <StackPanel Spacing="16" Width="440">
+                <CheckBox x:Name="AutoUpdateCheckBox" 
+                          Content="Automatyczne sprawdzanie aktualizacji"/>
+                <TextBox x:Name="IgnoredStylesTextBox" 
+                         Header="Ignorowane elementy (np. blazer, kod, klient)" 
+                         PlaceholderText="Oddziel nazwy przecinkiem"/>
+                <Grid ColumnSpacing="12" RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Row="0" Grid.Column="0" x:Name="ProductTextSizeTextBox" Header="Rozmiar produktu (pkt)" PlaceholderText="13"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="CareSymbolsSizeTextBox" Header="Rozmiar ikon (mm)" PlaceholderText="5.0"/>
+                    <TextBox Grid.Row="1" Grid.Column="0" x:Name="CompositionTextSizeTextBox" Header="Rozmiar składu (pkt)" PlaceholderText="10"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="LogoSizeTextBox" Header="Rozmiar logo (%)" PlaceholderText="75"/>
+                </Grid>
+                <Button Content="Otwórz plik konfiguracyjny (zaawansowane)" 
+                        Click="OpenRawConfigButton_Click" 
+                        HorizontalAlignment="Stretch"/>
+            </StackPanel>
+        </ContentDialog>
+
+        <ContentDialog x:Name="FirstRunDialog"
+                       Title="Aktualizacje"
+                       PrimaryButtonText="Tak"
+                       CloseButtonText="Nie">
+            <TextBlock Text="Czy chcesz włączyć automatyczne sprawdzanie aktualizacji przy uruchamianiu programu?" TextWrapping="Wrap"/>
+        </ContentDialog>
+    </Grid>
+</Window>

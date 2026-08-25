@@ -1,0 +1,16 @@
+======================================================
+                  LabelGeneratorGUI
+======================================================
+
+Author: Filip Cieśla
+Version: 08.26
+
+About the Software:
+LabelGeneratorGUI is a WinUI 3 desktop application designed to automate the generation of print-ready PDF product and care labels. It dynamically parses configuration and styling rules (such as material translations and customer style overrides) from a JSON file.
+
+Implementation Details:
+The application is highly self-contained. PDF generation is implemented entirely from scratch using native C++ streams without relying on heavy third-party PDF libraries. Excel (.xlsx) files are parsed without external C++ libraries by utilizing a lightweight PowerShell COM interop to convert them to CSV on the fly. Image processing and resizing are handled seamlessly via native Windows GDI+.
+
+Required External Libraries and Dependencies:
+- nlohmann/json (single-header C++ library for parsing config.json)
+- Windows App SDK / WinUI 3 (Microsoft framework for the Graphical User Interface)

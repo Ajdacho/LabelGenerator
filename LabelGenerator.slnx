@@ -1,0 +1,18 @@
+<Solution>
+  <Configurations>
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="credits.txt" />
+    <File Path="edycja_konfiguracji.txt" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="LabelEngine/LabelEngine.vcxproj" Id="4ac30ae4-0cb3-419c-9a19-044c7ec5ffc9">
+    <Platform Solution="*|ARM64" Project="x64" />
+  </Project>
+  <Project Path="LabelGeneratorGUI/LabelGeneratorGUI.vcxproj" Id="0219e8db-462e-4c6a-9ae7-a725249d6060">
+    <Deploy />
+  </Project>
+</Solution>

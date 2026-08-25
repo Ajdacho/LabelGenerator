@@ -1,0 +1,15 @@
+.vs/
+x64/
+Debug/
+Release/
+ipch/
+*.opensdf
+*.sdf
+*.suo
+*.user
+*.userosversion
+*.vcxproj.user
+packages/
+Generated Files/
+_UpgradeLog_Files/
+Backup*/

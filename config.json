@@ -1,0 +1,194 @@
+{
+  "ignored": [],
+  "excel_column_mapping": {
+    "product_code": "Product code",
+    "colour": "Colour",
+    "composition": "Composition",
+    "lining": "Lining",
+    "lining2": "Lining 2",
+    "style": "Product type",
+    "customer": "Brand",
+    "sizes": "Sizes"
+  },
+  "logo_mapping": {
+    "DZIEWKI": "Marco Cadini",
+    "EJB (NOUVEAU)": "Jack Blanc",
+    "TRAWIS": "Travis",
+    "BB": "Bruno Benetti"
+  },
+  "style_mapping": {
+    "MEN'S SHIRT": "SHIRT"
+  },
+  "customer_styles": {
+    "DEFAULT": {
+      "bg_color": "#FFFFFF",
+      "text_color": "#000000",
+      "logo_position": "top",
+      "care_prefix": "care_",
+      "show_logo": true,
+      "show_style": true,
+      "show_product": true,
+      "show_size": true,
+      "show_care": true,
+      "show_composition": true,
+      "show_lining": true
+    },
+    "SHIRT": {
+      "bg_color": "#FFFFFF",
+      "text_color": "#000000",
+      "logo_position": "top",
+      "care_prefix": "sh_care_",
+      "show_logo": false,
+      "show_style": true,
+      "show_product": true,
+      "show_size": true,
+      "show_care": true,
+      "show_composition": true,
+      "show_lining": false
+    },
+    "BL CLIENT": {
+      "bg_color": "#000000",
+      "text_color": "#CDAB66",
+      "logo_position": "top",
+      "care_prefix": "bl_care_",
+      "show_logo": true,
+      "show_style": true,
+      "show_product": true,
+      "show_size": true,
+      "show_care": true,
+      "show_composition": true,
+      "show_lining": true
+    },
+    "BL CLIENT AND SHIRT": {
+      "bg_color": "#000000",
+      "text_color": "#CDAB66",
+      "logo_position": "top",
+      "care_prefix": "bl_sh_care_",
+      "show_logo": false,
+      "show_style": true,
+      "show_product": true,
+      "show_size": true,
+      "show_care": true,
+      "show_composition": true,
+      "show_lining": false
+    }
+  },
+  "bottom_logos": [
+    "Marco Cadini"
+  ],
+  "translations": {
+    "series_label": "Seria/Series",
+    "size_label": "Rozmiar/Size",
+    "care_label": "Przepis konserwacji:\nCare instruction:\nPokyny na ošetrovanie:",
+    "composition_label": "Tkanina/Fabric/Materiál:",
+    "lining_label": "Podszewka/Lining/Podšívka:",
+    "lining_1_label": "Podszewka 1/Lining 1/Podšívka 1:",
+    "lining_2_label": "Podszewka 2/Lining 2/Podšívka 2:"
+  },
+  "style_translations": {
+    "SUIT": "GARNITUR MĘSKI\nMEN'S SUIT\nPÁNSKY OBLEK",
+    "PANTS": "SPODNIE MĘSKIE\nMEN'S PANTS\nPÁNSKE NOHAVICE",
+    "BLAZER": "MARYNARKA MĘSKA\nMEN'S BLAZER\nPÁNSKE SAKO",
+    "VEST": "KAMIZELKA MĘSKA\nMEN'S VEST\nPÁNSKA VESTA",
+    "COAT": "PŁASZCZ MĘSKI\nMEN'S COAT\nPÁNSKY KABÁT",
+    "SHIRT": "KOSZULA MĘSKA\nMEN'S SHIRT"
+  },
+  "layout": [
+    {
+      "type": "logo",
+      "size": 75.0
+    },
+    {
+      "type": "style",
+      "bold": true,
+      "size": 13,
+      "spacing": 4.0
+    },
+    {
+      "type": "product",
+      "bold": true,
+      "size": 13,
+      "spacing": 6.0
+    },
+    {
+      "type": "size",
+      "bold": true,
+      "size": 13,
+      "spacing": 6.0
+    },
+    {
+      "type": "care_header",
+      "bold": false,
+      "size": 10,
+      "spacing": 0.0
+    },
+    {
+      "type": "care_symbols",
+      "size": 6.0,
+      "gap": 2.5,
+      "spacing": 6.0
+    },
+    {
+      "type": "composition",
+      "bold": false,
+      "size": 10,
+      "spacing": 3.0
+    },
+    {
+      "type": "lining",
+      "bold": false,
+      "size": 10,
+      "spacing": 6.0
+    }
+  ],
+  "material_translations": {
+    "P": "poliester/polyester",
+    "PES": "poliester/polyester",
+    "POLYESTER": "poliester/polyester",
+    "POLIESTER": "poliester/polyester",
+    "N": "poliamid/polyamide/polyamid",
+    "PA": "poliamid/polyamide/polyamid",
+    "NYLON": "poliamid/polyamide/polyamid",
+    "POLYAMIDE": "poliamid/polyamide/polyamid",
+    "POLIAMID": "poliamid/polyamide/polyamid",
+    "WI": "wiskoza/viscose/viskóza",
+    "VI": "wiskoza/viscose/viskóza",
+    "V": "wiskoza/viscose/viskóza",
+    "VISCOSE": "wiskoza/viscose/viskóza",
+    "WISKOZA": "wiskoza/viscose/viskóza",
+    "SP": "elastan/elastane",
+    "E": "elastan/elastane",
+    "EA": "elastan/elastane",
+    "LY": "elastan/elastane",
+    "EL": "elastan/elastane",
+    "SPANDEX": "elastan/elastane",
+    "ELASTANE": "elastan/elastane",
+    "ELASTAN": "elastan/elastane",
+    "LYCRA": "elastan/elastane",
+    "C": "bawełna/cotton/bavlna",
+    "CO": "bawełna/cotton/bavlna",
+    "COTTON": "bawełna/cotton/bavlna",
+    "BAWEŁNA": "bawełna/cotton/bavlna",
+    "LE": "len/linen/ľan",
+    "LI": "len/linen/ľan",
+    "FL": "len/linen/ľan",
+    "LINEN": "len/linen/ľan",
+    "LEN": "len/linen/ľan",
+    "WE": "wełna/wool/vlna",
+    "WO": "wełna/wool/vlna",
+    "WV": "wełna/wool/vlna",
+    "WOOL": "wełna/wool/vlna",
+    "WEŁNA": "wełna/wool/vlna",
+    "A": "poliakryl/polyacrylic/polyakryl",
+    "PAN": "poliakryl/polyacrylic/polyakryl",
+    "ACRYLIC": "poliakryl/polyacrylic/polyakryl",
+    "POLYACRYLIC": "poliakryl/polyacrylic/polyakryl",
+    "POLIAKRYL": "poliakryl/polyacrylic/polyakryl",
+    "S": "jedwab/silk/hodváb",
+    "SE": "jedwab/silk/hodváb",
+    "SILK": "jedwab/silk/hodváb",
+    "JEDWAB": "jedwab/silk/hodváb",
+	"MD": "modal",
+	"MODAL" : "modal"
+  }
+}

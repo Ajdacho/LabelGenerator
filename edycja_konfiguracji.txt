@@ -1,0 +1,24 @@
+PORADNIK: JAK EDYTOWAĆ PLIK CONFIG.JSON
+
+Plik config.json odpowiada za wszystkie kluczowe ustawienia programu. Aby aplikacja działała poprawnie, plik ten musi zachować ścisłą strukturę formatu JSON.
+
+1. ZASADY FORMATOWANIA (BARDZO WAŻNE):
+   - Każda linijka zawierająca właściwość wewnątrz bloku (w nawiasach klamrowych {} lub kwadratowych []) MUSI kończyć się przecinkiem (,).
+   - WYJĄTEK: Ostatni element w danym bloku NIE MOŻE mieć przecinka na końcu.
+   - Brak przecinka w odpowiednim miejscu lub jego nadmiar spowoduje błąd krytyczny i aplikacja nie uruchomi się poprawnie.
+
+2. OPIS SEKCJI W PLIKU:
+   - "ignored": Lista wierszy/indeksów pomijanych podczas generowania etykiet z pliku Excel.
+   - "logo_mapping": Mapowanie kodów z arkusza Excel na nazwy plików graficznych z logotypami.
+   - "style_mapping": Normalizacja nazw fasonów z Excela - zamienia różne warianty wpisów (np. "MEN'S SHIRT") na jeden wspólny klucz (np. "SHIRT") przed procesem tłumaczenia.
+   - "customer_styles": Definiowanie unikalnego wyglądu etykiet dla konkretnych klientów oraz asortymentu (np. kolory tła, kolory czcionek, specyficzne prefiksy i pozycja logo). Obsługuje priorytety (np. "KUPUJĄCY AND SHIRT") oraz flagi widoczności sekcji ("show_logo", "show_style", "show_product", "show_size", "show_care", "show_composition", "show_lining").
+   - "bottom_logos": Lista logotypów, które są na stałe przypisane do dolnej części etykiety.
+   - "translations": Tłumaczenia stałych fraz systemowych na etykiecie (np. "Seria/Series", "Rozmiar/Size").
+   - "style_translations": Tłumaczenia znormalizowanych nazw produktów i fasonów na wielojęzyczne bloki tekstowe (np. zamiana "SUIT" na "GARNITUR MĘSKI...").
+   - "layout": Konfiguracja układu graficznego - definiuje kolejność, rozmiary i odstępy bloków drukowanych na etykiecie. Dostępne typy bloków: "logo", "style", "product", "size", "care_header", "care_symbols", "composition", "lining".
+   - "material_translations": Słownik materiałowy rozwijający skróty (np. "P" -> "poliester/polyester").
+
+3. ROZWIĄZYWANIE PROBLEMÓW:
+   Jeśli po edycji pliku program przestał działać lub nie ładuje stylów, najprawdopodobniej wystąpił błąd składni (tzw. syntax error).
+   Skopiuj całą zawartość pliku config.json i wklej ją na stronie: https://jsonlint.com/
+   Narzędzie to wskaże dokładny numer linijki, w której brakuje przecinka, nawiasu lub cudzysłowu.
