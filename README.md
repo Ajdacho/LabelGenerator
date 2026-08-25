@@ -1,6 +1,6 @@
 # LabelGeneratorGUI - Technical Documentation
 
-**Version:** 1.0
+**Version:** 1.0  
 **Author:** Filip Cieśla  
 **Platform:** Windows 10/11 (Standalone / Loose Files Deployment)  
 **Framework:** Windows App SDK (WinUI 3) / C++ WinRT  
@@ -63,7 +63,7 @@ For detailed instructions on using and modifying the application, please refer t
 
 The application runs as a standalone desktop utility. To launch the program:
 1. Ensure all required dependency libraries and resources are located in the application directory alongside `LabelGeneratorGUI.exe`.
-2. Use the provided shortcut or run `LabelGeneratorGUI.exe` directly.
+2. Use the provided `run.bat` script or run `LabelGeneratorGUI.exe` directly.
 
 ---
 
