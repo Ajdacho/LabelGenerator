@@ -3,6 +3,8 @@
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Pickers.h>
+#include <winrt/Windows.Web.Http.h>
+#include <winrt/Windows.Web.Http.Headers.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Interop.h>
 
@@ -29,10 +31,6 @@
 
 #pragma comment(lib, "shell32.lib")
 
-using namespace winrt;
-using namespace Microsoft::UI::Xaml;
-using namespace winrt::Windows::Storage;
-using namespace winrt::Windows::Storage::Pickers;
 using json = nlohmann::json;
 
 static std::filesystem::path GetExeDirPath()
@@ -66,7 +64,8 @@ static void SaveSettingKey(const std::string& key, const std::string& value)
     catch (...) {}
 }
 
-static std::string FloatToStrClean(float v) {
+static std::string FloatToStrClean(float v)
+{
     std::string s = std::to_string(v);
     s.erase(s.find_last_not_of('0') + 1, std::string::npos);
     if (!s.empty() && s.back() == '.') s.pop_back();
@@ -86,8 +85,8 @@ namespace winrt::LabelGeneratorGUI::implementation
         int height = 680;
 
         auto appWindow = this->AppWindow();
-        auto displayArea = Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(
-            appWindow.Id(), Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
+        auto displayArea = winrt::Microsoft::UI::Windowing::DisplayArea::GetFromWindowId(
+            appWindow.Id(), winrt::Microsoft::UI::Windowing::DisplayAreaFallback::Nearest);
 
         if (displayArea)
         {
@@ -110,9 +109,9 @@ namespace winrt::LabelGeneratorGUI::implementation
 
         LoadSavedSettings();
 
-        if (auto rootElement = this->Content().try_as<Microsoft::UI::Xaml::FrameworkElement>())
+        if (auto rootElement = this->Content().try_as<winrt::Microsoft::UI::Xaml::FrameworkElement>())
         {
-            rootElement.Loaded([this](IInspectable const&, RoutedEventArgs const&)
+            rootElement.Loaded([this](winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
                 {
                     CheckFirstRunAsync();
                 });
@@ -163,7 +162,7 @@ namespace winrt::LabelGeneratorGUI::implementation
                     AutoUpdateCheckBox().IsChecked(enabled);
                     if (enabled)
                     {
-                        updateCheckmarkBadge().Visibility(Visibility::Visible);
+                        updateCheckmarkBadge().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Visible);
                     }
                 }
             }
@@ -214,7 +213,7 @@ namespace winrt::LabelGeneratorGUI::implementation
                 AutoUpdateCheckBox().IsChecked(enable);
                 if (enable)
                 {
-                    updateCheckmarkBadge().Visibility(Visibility::Visible);
+                    updateCheckmarkBadge().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Visible);
                 }
             }
         }
@@ -231,14 +230,14 @@ namespace winrt::LabelGeneratorGUI::implementation
         generateButton().IsEnabled(ready);
     }
 
-    Windows::Foundation::IAsyncAction MainWindow::selectDataFileButton_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::Windows::Foundation::IAsyncAction MainWindow::selectDataFileButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        FileOpenPicker picker;
+        winrt::Windows::Storage::Pickers::FileOpenPicker picker;
         picker.as<IInitializeWithWindow>()->Initialize(GetWindowHandle());
         picker.FileTypeFilter().Append(L".xlsx");
         picker.FileTypeFilter().Append(L".csv");
 
-        StorageFile file = co_await picker.PickSingleFileAsync();
+        winrt::Windows::Storage::StorageFile file = co_await picker.PickSingleFileAsync();
         if (file)
         {
             m_dataFilePath = file.Path();
@@ -248,13 +247,13 @@ namespace winrt::LabelGeneratorGUI::implementation
         }
     }
 
-    Windows::Foundation::IAsyncAction MainWindow::selectLogosFolderButton_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::Windows::Foundation::IAsyncAction MainWindow::selectLogosFolderButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        FolderPicker picker;
+        winrt::Windows::Storage::Pickers::FolderPicker picker;
         picker.as<IInitializeWithWindow>()->Initialize(GetWindowHandle());
         picker.FileTypeFilter().Append(L"*");
 
-        StorageFolder folder = co_await picker.PickSingleFolderAsync();
+        winrt::Windows::Storage::StorageFolder folder = co_await picker.PickSingleFolderAsync();
         if (folder)
         {
             m_logosFolderPath = folder.Path();
@@ -264,13 +263,13 @@ namespace winrt::LabelGeneratorGUI::implementation
         }
     }
 
-    Windows::Foundation::IAsyncAction MainWindow::selectIconsFolderButton_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::Windows::Foundation::IAsyncAction MainWindow::selectIconsFolderButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        FolderPicker picker;
+        winrt::Windows::Storage::Pickers::FolderPicker picker;
         picker.as<IInitializeWithWindow>()->Initialize(GetWindowHandle());
         picker.FileTypeFilter().Append(L"*");
 
-        StorageFolder folder = co_await picker.PickSingleFolderAsync();
+        winrt::Windows::Storage::StorageFolder folder = co_await picker.PickSingleFolderAsync();
         if (folder)
         {
             m_iconsFolderPath = folder.Path();
@@ -280,13 +279,13 @@ namespace winrt::LabelGeneratorGUI::implementation
         }
     }
 
-    Windows::Foundation::IAsyncAction MainWindow::selectOutputFolderButton_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::Windows::Foundation::IAsyncAction MainWindow::selectOutputFolderButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        FolderPicker picker;
+        winrt::Windows::Storage::Pickers::FolderPicker picker;
         picker.as<IInitializeWithWindow>()->Initialize(GetWindowHandle());
         picker.FileTypeFilter().Append(L"*");
 
-        StorageFolder folder = co_await picker.PickSingleFolderAsync();
+        winrt::Windows::Storage::StorageFolder folder = co_await picker.PickSingleFolderAsync();
         if (folder)
         {
             m_outputFolderPath = folder.Path();
@@ -296,7 +295,7 @@ namespace winrt::LabelGeneratorGUI::implementation
         }
     }
 
-    winrt::fire_and_forget MainWindow::configButton_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::fire_and_forget MainWindow::configButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
         auto xamlRoot = this->Content().XamlRoot();
         if (!xamlRoot) co_return;
@@ -305,34 +304,44 @@ namespace winrt::LabelGeneratorGUI::implementation
 
         LogoSizeTextBox().Text(L"75");
 
-        try {
+        try
+        {
             std::ifstream cFile(configPath);
             json j;
-            if (cFile.is_open()) {
+            if (cFile.is_open())
+            {
                 cFile >> j;
 
-                if (j.contains("ignored")) {
+                if (j.contains("ignored"))
+                {
                     std::string ignored;
-                    for (auto& item : j["ignored"]) {
+                    for (auto& item : j["ignored"])
+                    {
                         if (!ignored.empty()) ignored += ", ";
                         ignored += item.get<std::string>();
                     }
                     IgnoredStylesTextBox().Text(winrt::to_hstring(ignored));
                 }
 
-                if (j.contains("layout")) {
-                    for (auto& block : j["layout"]) {
+                if (j.contains("layout"))
+                {
+                    for (auto& block : j["layout"])
+                    {
                         std::string type = block.value("type", "");
-                        if (type == "care_symbols" && block.contains("size")) {
+                        if (type == "care_symbols" && block.contains("size"))
+                        {
                             CareSymbolsSizeTextBox().Text(winrt::to_hstring(FloatToStrClean(block["size"].get<float>())));
                         }
-                        else if (type == "product" && block.contains("size")) {
+                        else if (type == "product" && block.contains("size"))
+                        {
                             ProductTextSizeTextBox().Text(winrt::to_hstring(std::to_string(block["size"].get<int>())));
                         }
-                        else if (type == "composition" && block.contains("size")) {
+                        else if (type == "composition" && block.contains("size"))
+                        {
                             CompositionTextSizeTextBox().Text(winrt::to_hstring(std::to_string(block["size"].get<int>())));
                         }
-                        else if (type == "logo" && block.contains("size")) {
+                        else if (type == "logo" && block.contains("size"))
+                        {
                             LogoSizeTextBox().Text(winrt::to_hstring(FloatToStrClean(block["size"].get<float>())));
                         }
                     }
@@ -345,20 +354,22 @@ namespace winrt::LabelGeneratorGUI::implementation
         co_await ConfigDialog().ShowAsync();
     }
 
-    void MainWindow::OpenRawConfigButton_Click(IInspectable const&, RoutedEventArgs const&)
+    void MainWindow::OpenRawConfigButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
         std::wstring configPath = (GetExeDirPath() / "config.json").wstring();
         ShellExecuteW(NULL, L"open", configPath.c_str(), NULL, NULL, SW_SHOWNORMAL);
     }
 
-    void MainWindow::ConfigDialog_PrimaryButtonClick(Microsoft::UI::Xaml::Controls::ContentDialog const&, Microsoft::UI::Xaml::Controls::ContentDialogButtonClickEventArgs const&)
+    void MainWindow::ConfigDialog_PrimaryButtonClick(winrt::Microsoft::UI::Xaml::Controls::ContentDialog const&, winrt::Microsoft::UI::Xaml::Controls::ContentDialogButtonClickEventArgs const&)
     {
         std::string configPath = (GetExeDirPath() / "config.json").string();
 
-        try {
+        try
+        {
             std::ifstream cFile(configPath);
             json j;
-            if (cFile.is_open()) {
+            if (cFile.is_open())
+            {
                 cFile >> j;
                 cFile.close();
             }
@@ -367,29 +378,38 @@ namespace winrt::LabelGeneratorGUI::implementation
             std::vector<std::string> ignoredList;
             std::stringstream ss(ignoredStr);
             std::string item;
-            while (std::getline(ss, item, ',')) {
+            while (std::getline(ss, item, ','))
+            {
                 auto start = item.find_first_not_of(" \t");
                 auto end = item.find_last_not_of(" \t");
-                if (start != std::string::npos) {
+                if (start != std::string::npos)
+                {
                     ignoredList.push_back(item.substr(start, end - start + 1));
                 }
             }
             j["ignored"] = ignoredList;
 
-            if (j.contains("layout")) {
-                for (auto& block : j["layout"]) {
+            if (j.contains("layout"))
+            {
+                for (auto& block : j["layout"])
+                {
                     std::string type = block.value("type", "");
-                    try {
-                        if (type == "care_symbols" && block.contains("size")) {
+                    try
+                    {
+                        if (type == "care_symbols" && block.contains("size"))
+                        {
                             block["size"] = std::stof(winrt::to_string(CareSymbolsSizeTextBox().Text()));
                         }
-                        else if (type == "product" && block.contains("size")) {
+                        else if (type == "product" && block.contains("size"))
+                        {
                             block["size"] = std::stoi(winrt::to_string(ProductTextSizeTextBox().Text()));
                         }
-                        else if (type == "composition" && block.contains("size")) {
+                        else if (type == "composition" && block.contains("size"))
+                        {
                             block["size"] = std::stoi(winrt::to_string(CompositionTextSizeTextBox().Text()));
                         }
-                        else if (type == "logo") {
+                        else if (type == "logo")
+                        {
                             block["size"] = std::stof(winrt::to_string(LogoSizeTextBox().Text()));
                         }
                     }
@@ -419,17 +439,17 @@ namespace winrt::LabelGeneratorGUI::implementation
 
             if (enabled)
             {
-                updateCheckmarkBadge().Visibility(Visibility::Visible);
+                updateCheckmarkBadge().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Visible);
             }
             else
             {
-                updateCheckmarkBadge().Visibility(Visibility::Collapsed);
+                updateCheckmarkBadge().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
             }
         }
         catch (...) {}
     }
 
-    void MainWindow::OpenFolderButton_Click(IInspectable const&, RoutedEventArgs const&)
+    void MainWindow::OpenFolderButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
         if (!m_outputFolderPath.empty())
         {
@@ -437,23 +457,66 @@ namespace winrt::LabelGeneratorGUI::implementation
         }
     }
 
-    winrt::fire_and_forget MainWindow::checkForUpdatesButton_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::fire_and_forget MainWindow::checkForUpdatesButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
         ResultInfoBar().IsOpen(true);
-        ResultInfoBar().Severity(Microsoft::UI::Xaml::Controls::InfoBarSeverity::Informational);
+        ResultInfoBar().Severity(winrt::Microsoft::UI::Xaml::Controls::InfoBarSeverity::Informational);
         ResultInfoBar().Title(L"Sprawdzanie aktualizacji");
-        ResultInfoBar().Message(L"Posiadasz najnowszą wersję programu.");
-        ShowReportButton().Visibility(Visibility::Collapsed);
-        OpenFolderButton().Visibility(Visibility::Collapsed);
+        ResultInfoBar().Message(L"Trwa sprawdzanie w tle...");
+        ShowReportButton().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
+        OpenFolderButton().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
 
-        updateCheckmarkBadge().Visibility(Visibility::Visible);
+        co_await winrt::resume_background();
 
-        co_return;
+        bool updateAvailable = false;
+        std::wstring latestVersionStr = L"";
+
+        try
+        {
+            winrt::Windows::Web::Http::HttpClient httpClient;
+            httpClient.DefaultRequestHeaders().Append(L"User-Agent", L"LabelGeneratorGUI-Client");
+
+            winrt::Windows::Foundation::Uri uri(L"https://api.github.com/repos/Ajdacho/LabelGenerator/releases/latest");
+            auto responseString = co_await httpClient.GetStringAsync(uri);
+
+            auto j = json::parse(winrt::to_string(responseString));
+            if (j.contains("tag_name"))
+            {
+                std::string tagName = j["tag_name"].get<std::string>();
+                latestVersionStr = winrt::to_hstring(tagName);
+
+                std::string currentVersion = "1.0.11.0";
+                if (tagName != currentVersion && tagName != ("v" + currentVersion))
+                {
+                    updateAvailable = true;
+                }
+            }
+        }
+        catch (...) {}
+
+        this->DispatcherQueue().TryEnqueue([this, updateAvailable, latestVersionStr]()
+            {
+                if (updateAvailable)
+                {
+                    ResultInfoBar().Severity(winrt::Microsoft::UI::Xaml::Controls::InfoBarSeverity::Warning);
+                    ResultInfoBar().Title(L"Dostępna nowa wersja!");
+                    ResultInfoBar().Message(L"Wykryto nową wersję: " + latestVersionStr + L". Otwieranie strony pobierania...");
+                    ShellExecuteW(NULL, L"open", L"https://github.com/Ajdacho/LabelGenerator/releases/latest", NULL, NULL, SW_SHOWNORMAL);
+                }
+                else
+                {
+                    ResultInfoBar().Severity(winrt::Microsoft::UI::Xaml::Controls::InfoBarSeverity::Success);
+                    ResultInfoBar().Title(L"Brak aktualizacji");
+                    ResultInfoBar().Message(L"Posiadasz najnowszą wersję programu.");
+                }
+
+                updateCheckmarkBadge().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Visible);
+            });
     }
 
-    winrt::fire_and_forget MainWindow::generateButton_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::fire_and_forget MainWindow::generateButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        generationProgressBar().Visibility(Visibility::Visible);
+        generationProgressBar().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Visible);
         generateButton().IsEnabled(false);
         ResultInfoBar().IsOpen(false);
 
@@ -461,7 +524,6 @@ namespace winrt::LabelGeneratorGUI::implementation
         std::string logosPath = winrt::to_string(m_logosFolderPath);
         std::string iconsPath = winrt::to_string(m_iconsFolderPath);
         std::string outputPath = winrt::to_string(m_outputFolderPath);
-
         std::string configPath = (GetExeDirPath() / "config.json").string();
 
         co_await winrt::resume_background();
@@ -478,12 +540,15 @@ namespace winrt::LabelGeneratorGUI::implementation
         std::wstring reportContent = L"";
         bool hasWarnings = false;
 
-        if (std::filesystem::exists(reportPath)) {
+        if (std::filesystem::exists(reportPath))
+        {
             std::ifstream file(reportPath);
-            if (file.is_open()) {
+            if (file.is_open())
+            {
                 std::string str((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
                 reportContent = winrt::to_hstring(str).c_str();
-                if (!reportContent.empty()) {
+                if (!reportContent.empty())
+                {
                     hasWarnings = true;
                 }
             }
@@ -491,51 +556,54 @@ namespace winrt::LabelGeneratorGUI::implementation
 
         this->DispatcherQueue().TryEnqueue([this, success, hasWarnings, reportContent]()
             {
-                generationProgressBar().Visibility(Visibility::Collapsed);
+                generationProgressBar().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
                 generateButton().IsEnabled(true);
                 m_lastReportContent = reportContent;
 
                 ResultInfoBar().IsOpen(true);
-                OpenFolderButton().Visibility(Visibility::Visible);
+                OpenFolderButton().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Visible);
 
-                if (!success && !hasWarnings) {
-                    ResultInfoBar().Severity(Microsoft::UI::Xaml::Controls::InfoBarSeverity::Error);
+                if (!success && !hasWarnings)
+                {
+                    ResultInfoBar().Severity(winrt::Microsoft::UI::Xaml::Controls::InfoBarSeverity::Error);
                     ResultInfoBar().Title(L"Błąd generowania");
                     ResultInfoBar().Message(L"Nie udało się otworzyć pliku. Upewnij się, że plik nie jest używany. Jeśli nie masz zainstalowanego programu Excel, ręcznie zapisz listę jako plik .csv i użyj go jako źródła danych.");
-                    ShowReportButton().Visibility(Visibility::Collapsed);
+                    ShowReportButton().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
                 }
-                else if (success && hasWarnings) {
-                    ResultInfoBar().Severity(Microsoft::UI::Xaml::Controls::InfoBarSeverity::Warning);
+                else if (success && hasWarnings)
+                {
+                    ResultInfoBar().Severity(winrt::Microsoft::UI::Xaml::Controls::InfoBarSeverity::Warning);
                     ResultInfoBar().Title(L"Ostrzeżenia");
                     ResultInfoBar().Message(L"Wygenerowano metki, ale wykryto ostrzeżenia. W folderze docelowym utworzono plik log.txt.");
-                    ShowReportButton().Visibility(Visibility::Visible);
+                    ShowReportButton().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Visible);
                 }
-                else {
-                    ResultInfoBar().Severity(Microsoft::UI::Xaml::Controls::InfoBarSeverity::Success);
+                else
+                {
+                    ResultInfoBar().Severity(winrt::Microsoft::UI::Xaml::Controls::InfoBarSeverity::Success);
                     ResultInfoBar().Title(L"Sukces");
                     ResultInfoBar().Message(L"Pomyślnie wygenerowano wszystkie metki.");
-                    ShowReportButton().Visibility(Visibility::Collapsed);
+                    ShowReportButton().Visibility(winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
                 }
             });
     }
 
-    winrt::fire_and_forget MainWindow::ShowReportButton_Click(IInspectable const&, RoutedEventArgs const&)
+    winrt::fire_and_forget MainWindow::ShowReportButton_Click(winrt::Windows::Foundation::IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
         auto xamlRoot = this->Content().XamlRoot();
         if (!xamlRoot) co_return;
 
-        Microsoft::UI::Xaml::Controls::ContentDialog dialog;
+        winrt::Microsoft::UI::Xaml::Controls::ContentDialog dialog;
         dialog.XamlRoot(xamlRoot);
-        dialog.Title(box_value(L"Szczegółowy raport ostrzeżeń"));
+        dialog.Title(winrt::box_value(L"Szczegółowy raport ostrzeżeń"));
 
-        Microsoft::UI::Xaml::Controls::TextBlock textBlock;
+        winrt::Microsoft::UI::Xaml::Controls::TextBlock textBlock;
         textBlock.Text(m_lastReportContent.c_str());
-        textBlock.TextWrapping(Microsoft::UI::Xaml::TextWrapping::Wrap);
-        textBlock.FontFamily(Microsoft::UI::Xaml::Media::FontFamily(L"Consolas"));
+        textBlock.TextWrapping(winrt::Microsoft::UI::Xaml::TextWrapping::Wrap);
+        textBlock.FontFamily(winrt::Microsoft::UI::Xaml::Media::FontFamily(L"Consolas"));
 
-        Microsoft::UI::Xaml::Controls::ScrollViewer scrollViewer;
-        scrollViewer.VerticalScrollBarVisibility(Microsoft::UI::Xaml::Controls::ScrollBarVisibility::Auto);
-        scrollViewer.HorizontalScrollBarVisibility(Microsoft::UI::Xaml::Controls::ScrollBarVisibility::Disabled);
+        winrt::Microsoft::UI::Xaml::Controls::ScrollViewer scrollViewer;
+        scrollViewer.VerticalScrollBarVisibility(winrt::Microsoft::UI::Xaml::Controls::ScrollBarVisibility::Auto);
+        scrollViewer.HorizontalScrollBarVisibility(winrt::Microsoft::UI::Xaml::Controls::ScrollBarVisibility::Disabled);
         scrollViewer.MaxHeight(450);
         scrollViewer.Content(textBlock);
 
