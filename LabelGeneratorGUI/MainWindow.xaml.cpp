@@ -33,6 +33,8 @@
 
 using json = nlohmann::json;
 
+const std::string CURRENT_APP_VERSION = "1.0";
+
 static std::filesystem::path GetExeDirPath()
 {
     char exePathBuf[MAX_PATH];
@@ -485,8 +487,7 @@ namespace winrt::LabelGeneratorGUI::implementation
                 std::string tagName = j["tag_name"].get<std::string>();
                 latestVersionStr = winrt::to_hstring(tagName);
 
-                std::string currentVersion = "1.0.11.0";
-                if (tagName != currentVersion && tagName != ("v" + currentVersion))
+                if (tagName != CURRENT_APP_VERSION && tagName != ("v" + CURRENT_APP_VERSION))
                 {
                     updateAvailable = true;
                 }
