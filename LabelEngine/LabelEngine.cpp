@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <set>
+#include <stdexcept>
 
 #pragma comment(lib, "gdiplus.lib")
 
@@ -20,7 +21,10 @@ namespace fs = std::filesystem;
 using json = nlohmann::json;
 
 static constexpr float MM_TO_PT = 2.83464567f;
-static float MmToPt(float mm) { return mm * MM_TO_PT; }
+
+static float MmToPt(float mm) {
+    return mm * MM_TO_PT;
+}
 
 struct CustomerStyleConfig {
     std::string bgColor = "#FFFFFF";
@@ -339,7 +343,7 @@ static std::string ConvertXlsxToTabCsv(const std::string& inputPath) {
     return tempCsvPath.string();
 }
 
-static std::vector<ExcelRowData> ReadExcelCSV(const std::string& filePath, const std::unordered_map<std::string, std::string>& colMap) {
+static std::vector<ExcelRowData> ReadExcelCSV(const std::string& filePath, const std::unordered_map<std::string, std::string>& colMap, std::set<std::string>& warnings) {
     std::vector<ExcelRowData> rows;
     std::ifstream file(filePath, std::ios::binary);
     if (!file.is_open()) return rows;
@@ -443,12 +447,14 @@ static std::vector<ExcelRowData> ReadExcelCSV(const std::string& filePath, const
         else if (colSizes == -1 && (up == "SIZES" || up == "SIZE")) colSizes = (int)c;
     }
 
-    if (colProduct == -1) colProduct = 0;
-    if (colColor == -1) colColor = 1;
-    if (colComp == -1) colComp = 2;
-    if (colLining == -1) colLining = 3;
-    if (colStyle == -1) colStyle = 4;
-    if (colCustomer == -1) colCustomer = 5;
+    if (colProduct == -1) warnings.insert("- Brak kolumny odpowiadającej 'product_code'.");
+    if (colColor == -1) warnings.insert("- Brak kolumny odpowiadającej 'colour'.");
+    if (colComp == -1) warnings.insert("- Brak kolumny odpowiadającej 'composition'.");
+    if (colLining == -1) warnings.insert("- Brak kolumny odpowiadającej 'lining'.");
+    if (colLining2 == -1) warnings.insert("- Brak kolumny odpowiadającej 'lining2'.");
+    if (colStyle == -1) warnings.insert("- Brak kolumny odpowiadającej 'style'.");
+    if (colCustomer == -1) warnings.insert("- Brak kolumny odpowiadającej 'customer'.");
+    if (colSizes == -1) warnings.insert("- Brak kolumny odpowiadającej 'sizes'.");
 
     for (size_t i = 1; i < allRows.size(); ++i) {
         const auto& cols = allRows[i];
@@ -874,8 +880,31 @@ extern "C" {
         Gdiplus::GdiplusStartupInput gdiplusStartupInput;
         Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-        std::vector<ExcelRowData> rows = ReadExcelCSV(effectiveCsvPath, pdfConfig.excelColumnMapping);
+        fs::path baseOutputDir(Utf8ToWstring(outputDir));
+
+        std::vector<ExcelRowData> rows;
+        try {
+            rows = ReadExcelCSV(effectiveCsvPath, pdfConfig.excelColumnMapping, warnings);
+        }
+        catch (const std::exception& e) {
+            warnings.insert(std::string("Błąd krytyczny odczytu: ") + e.what());
+        }
+
         if (rows.empty()) {
+            fs::path reportPath = baseOutputDir / L"log.txt";
+            if (!warnings.empty()) {
+                std::ofstream reportFile(reportPath, std::ios::binary);
+                if (reportFile.is_open()) {
+                    std::string header = "--- RAPORT OSTRZEŻEŃ ---\r\n";
+                    reportFile.write(header.c_str(), header.size());
+                    for (const auto& w : warnings) {
+                        std::string line = w + "\r\n";
+                        reportFile.write(line.c_str(), line.size());
+                    }
+                    reportFile.close();
+                }
+            }
+
             Gdiplus::GdiplusShutdown(gdiplusToken);
             if (effectiveCsvPath != inputFilePath) fs::remove(Utf8ToWstring(effectiveCsvPath));
             return false;
@@ -914,7 +943,6 @@ extern "C" {
             catch (...) {}
         }
 
-        fs::path baseOutputDir(Utf8ToWstring(outputDir));
         fs::path genLabelsDir = baseOutputDir / L"generated_labels";
         fs::path genLabelsSortedDir = baseOutputDir / L"generated_labels_sorted";
         fs::create_directories(genLabelsDir);

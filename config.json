@@ -6,8 +6,8 @@
     "composition": "Composition",
     "lining": "Lining",
     "lining2": "Lining 2",
-    "style": "Product type",
-    "customer": "Brand",
+    "style": "Style",
+    "customer": "Customer",
     "sizes": "Sizes"
   },
   "logo_mapping": {
