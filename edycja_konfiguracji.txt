@@ -8,17 +8,40 @@ Plik config.json odpowiada za wszystkie kluczowe ustawienia programu. Aby aplika
    - Brak przecinka w odpowiednim miejscu lub jego nadmiar spowoduje błąd krytyczny i aplikacja nie uruchomi się poprawnie.
 
 2. OPIS SEKCJI W PLIKU:
-   - "ignored": Lista wierszy/indeksów pomijanych podczas generowania etykiet z pliku Excel.
-   - "logo_mapping": Mapowanie kodów z arkusza Excel na nazwy plików graficznych z logotypami.
-   - "style_mapping": Normalizacja nazw fasonów z Excela - zamienia różne warianty wpisów (np. "MEN'S SHIRT") na jeden wspólny klucz (np. "SHIRT") przed procesem tłumaczenia.
-   - "customer_styles": Definiowanie unikalnego wyglądu etykiet dla konkretnych klientów oraz asortymentu (np. kolory tła, kolory czcionek, specyficzne prefiksy i pozycja logo). Obsługuje priorytety (np. "KUPUJĄCY AND SHIRT") oraz flagi widoczności sekcji ("show_logo", "show_style", "show_product", "show_size", "show_care", "show_composition", "show_lining").
-   - "bottom_logos": Lista logotypów, które są na stałe przypisane do dolnej części etykiety.
-   - "translations": Tłumaczenia stałych fraz systemowych na etykiecie (np. "Seria/Series", "Rozmiar/Size").
-   - "style_translations": Tłumaczenia znormalizowanych nazw produktów i fasonów na wielojęzyczne bloki tekstowe (np. zamiana "SUIT" na "GARNITUR MĘSKI...").
-   - "layout": Konfiguracja układu graficznego - definiuje kolejność, rozmiary i odstępy bloków drukowanych na etykiecie. Dostępne typy bloków: "logo", "style", "product", "size", "care_header", "care_symbols", "composition", "lining".
-   - "material_translations": Słownik materiałowy rozwijający skróty (np. "P" -> "poliester/polyester").
+   - "ignored": Lista wierszy/indeksów z Excela pomijanych podczas generowania.
+   - "excel_column_mapping": Mapowanie kluczy systemowych na nagłówki kolumn w pliku Excel (np. "product_code": "Product code").
+   - "logo_mapping": Mapowanie nazw odbiorców/kodów z arkusza Excel na nazwy plików graficznych logotypów.
+   - "style_mapping": Normalizacja nazw fasonów z Excela — zamienia różne warianty wpisów (np. "MEN'S SHIRT") na jeden wspólny klucz (np. "SHIRT") przed procesem tłumaczenia.
+   - "customer_styles": Definiowanie stylu i układu etykiet dla konkretnych klientów.
+     * Wpis klienta może być pojedynczym obiektem {} lub TABLICĄ OBIEKTÓW [...] (stosuje się tablicę, jeśli dla jednego klienta ma zostać wygenerowanych kilka osobnych plików PDF, np. wszywka materiałowa oraz naklejka).
+     * Kluczowe opcje wariantu:
+       - "suffix": Przyrostek w nazwie pliku PDF (np. "_care", "_sticker").
+       - "language": Identyfikator wariantu językowego (np. "pl_en").
+       - "bg_color" / "text_color": Kolorystyka (kody HEX, np. "#FFFFFF").
+       - "show_*" (show_logo, show_style, show_product itp.): Flagi widoczności poszczególnych sekcji (true/false).
+       - "layout": Indywidualny układ bloków na etykiecie dla danego klienta (nadpisuje układ domyślny).
+   - "bottom_logos": Lista logotypów przypisanych na stałe do dolnej części etykiety.
+   - "translations": Tłumaczenia stałych nagłówków systemowych (np. "Seria/Series", "Rozmiar/Size").
+   - "style_translations": Tłumaczenia znormalizowanych nazw produktów/fasonów na wielojęzyczne bloki tekstowe (np. "SUIT" -> "GARNITUR MĘSKI\nMEN'S SUIT...").
+   - "layout": Domyślna konfiguracja układu graficznego.
+   - "material_translations": Słownik materiałowy rozwijający skróty ze składu (np. "P" -> "poliester/polyester").
 
-3. ROZWIĄZYWANIE PROBLEMÓW:
-   Jeśli po edycji pliku program przestał działać lub nie ładuje stylów, najprawdopodobniej wystąpił błąd składni (tzw. syntax error).
-   Skopiuj całą zawartość pliku config.json i wklej ją na stronie: https://jsonlint.com/
+3. STOSOWANIE BLOKÓW TEKSTOWYCH ("type": "text"):
+   W sekcji "layout" (zarówno domyślnej, jak i dedykowanej dla konkretnego klienta) można wstawiać własne bloki tekstowe (np. adres firmy, stałe nagłówki czy zastępczy rozmiar):
+   {
+     "type": "text",
+     "content": "XAWER Sp. z o. o.",
+     "bold": true,
+     "size": 13,
+     "spacing": 1.0
+   }
+   Dostępne parametry dla bloku "text":
+   - "content": Treść tekstu. Można użyć \n do przełamania linii lub rozbić adres na osobne obiekty tekstowe z małym "spacing".
+   - "bold": Pogrubienie czcionki (true/false).
+   - "size": Rozmiar czcionki w punktach.
+   - "spacing": Odstęp w pionie pod danym blokiem tekstu.
+
+4. ROZWIĄZYWANIE PROBLEMÓW:
+   Jeśli po edycji pliku program przestanie działać lub nie załaduje stylów, najprawdopodobniej wystąpił błąd składni (tzw. syntax error).
+   Należy skopiować całą zawartość pliku config.json i wkleić ją na stronie: https://jsonlint.com/
    Narzędzie to wskaże dokładny numer linijki, w której brakuje przecinka, nawiasu lub cudzysłowu.

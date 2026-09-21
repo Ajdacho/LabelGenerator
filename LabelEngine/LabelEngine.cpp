@@ -17,9 +17,6 @@
 
 #pragma comment(lib, "gdiplus.lib")
 
-namespace fs = std::filesystem;
-using json = nlohmann::json;
-
 static constexpr float MM_TO_PT = 2.83464567f;
 
 static float MmToPt(float mm) {
@@ -27,6 +24,8 @@ static float MmToPt(float mm) {
 }
 
 struct CustomerStyleConfig {
+    std::string suffix = "";
+    std::string language = "";
     std::string bgColor = "#FFFFFF";
     std::string textColor = "#000000";
     std::string logoPosition = "top";
@@ -38,18 +37,19 @@ struct CustomerStyleConfig {
     bool showCare = true;
     bool showComposition = true;
     bool showLining = true;
+    nlohmann::json layout;
 };
 
 struct PdfConfig {
     std::vector<std::string> bottomLogos;
     std::vector<std::string> premiumKeywords;
     std::vector<std::string> ignored;
-    std::unordered_map<std::string, CustomerStyleConfig> customerStyles;
+    std::unordered_map<std::string, std::vector<CustomerStyleConfig>> customerStyles;
     std::unordered_map<std::string, std::string> translations;
     std::unordered_map<std::string, std::string> styleTranslations;
     std::unordered_map<std::string, std::string> materialTranslations;
     std::unordered_map<std::string, std::string> excelColumnMapping;
-    json layout;
+    nlohmann::json layout;
 };
 
 struct ExcelRowData {
@@ -84,7 +84,7 @@ static std::string ConvertUtf8ToCp1250(const std::string& utf8) {
 }
 
 static std::string ToUpper(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::toupper(c); });
+    std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return (char)std::toupper(c); });
     return str;
 }
 
@@ -109,6 +109,48 @@ static std::string EscapePdfString(const std::string& str) {
         result += c;
     }
     return result;
+}
+
+static std::string ApplyLanguageFilter(const std::string& str, const std::string& lang) {
+    if (str.empty() || lang.empty() || lang == "all" || lang == "pl_en_sk") {
+        return str;
+    }
+
+    if (lang == "pl") {
+        size_t nPos = str.find('\n');
+        std::string line = (nPos != std::string::npos) ? str.substr(0, nPos) : str;
+        size_t sPos = line.find('/');
+        return (sPos != std::string::npos) ? line.substr(0, sPos) : line;
+    }
+
+    if (lang == "pl_en") {
+        std::string result;
+        std::stringstream ss(str);
+        std::string line;
+        int lineCount = 0;
+        while (std::getline(ss, line, '\n')) {
+            if (lineCount >= 2) break;
+            if (lineCount > 0) result += "\n";
+
+            std::vector<std::string> parts;
+            std::stringstream lineStream(line);
+            std::string part;
+            while (std::getline(lineStream, part, '/')) {
+                parts.push_back(part);
+            }
+
+            if (parts.size() >= 3) {
+                result += parts[0] + "/" + parts[1];
+            }
+            else {
+                result += line;
+            }
+            lineCount++;
+        }
+        return result;
+    }
+
+    return str;
 }
 
 static void HexToRgb(const std::string& hex, float& r, float& g, float& b) {
@@ -181,6 +223,25 @@ static float GetTextWidth(const std::string& text, int fontSize, bool isBold) {
         width += charW;
     }
     return width * (float)fontSize;
+}
+
+static CustomerStyleConfig ParseCustomerStyleConfig(const nlohmann::json& val) {
+    CustomerStyleConfig cs;
+    if (val.contains("suffix") && val["suffix"].is_string()) cs.suffix = val["suffix"].get<std::string>();
+    if (val.contains("language") && val["language"].is_string()) cs.language = val["language"].get<std::string>();
+    if (val.contains("bg_color") && val["bg_color"].is_string()) cs.bgColor = val["bg_color"].get<std::string>();
+    if (val.contains("text_color") && val["text_color"].is_string()) cs.textColor = val["text_color"].get<std::string>();
+    if (val.contains("logo_position") && val["logo_position"].is_string()) cs.logoPosition = val["logo_position"].get<std::string>();
+    if (val.contains("care_prefix") && val["care_prefix"].is_string()) cs.carePrefix = val["care_prefix"].get<std::string>();
+    if (val.contains("show_logo") && val["show_logo"].is_boolean()) cs.showLogo = val["show_logo"].get<bool>();
+    if (val.contains("show_style") && val["show_style"].is_boolean()) cs.showStyle = val["show_style"].get<bool>();
+    if (val.contains("show_product") && val["show_product"].is_boolean()) cs.showProduct = val["show_product"].get<bool>();
+    if (val.contains("show_size") && val["show_size"].is_boolean()) cs.showSize = val["show_size"].get<bool>();
+    if (val.contains("show_care") && val["show_care"].is_boolean()) cs.showCare = val["show_care"].get<bool>();
+    if (val.contains("show_composition") && val["show_composition"].is_boolean()) cs.showComposition = val["show_composition"].get<bool>();
+    if (val.contains("show_lining") && val["show_lining"].is_boolean()) cs.showLining = val["show_lining"].get<bool>();
+    if (val.contains("layout")) cs.layout = val["layout"];
+    return cs;
 }
 
 static std::vector<std::string> SplitAndFormatMaterials(const std::string& input, const std::unordered_map<std::string, std::string>& customMaterialMap) {
@@ -301,15 +362,15 @@ static PdfImage LoadImageAsJpeg(const std::wstring& filePath, bool forceWhiteBac
 }
 
 static std::string ConvertXlsxToTabCsv(const std::string& inputPath) {
-    fs::path p(Utf8ToWstring(inputPath));
+    std::filesystem::path p(Utf8ToWstring(inputPath));
     if (ToUpper(p.extension().string()) != ".XLSX") return inputPath;
 
     wchar_t tempDir[MAX_PATH];
     GetTempPathW(MAX_PATH, tempDir);
-    fs::path tempCsvPath = fs::path(tempDir) / L"label_generator_temp.txt";
+    std::filesystem::path tempCsvPath = std::filesystem::path(tempDir) / L"label_generator_temp.txt";
 
-    if (fs::exists(tempCsvPath)) {
-        fs::remove(tempCsvPath);
+    if (std::filesystem::exists(tempCsvPath)) {
+        std::filesystem::remove(tempCsvPath);
     }
 
     std::wostringstream cmdStream;
@@ -336,7 +397,7 @@ static std::string ConvertXlsxToTabCsv(const std::string& inputPath) {
         CloseHandle(pi.hThread);
     }
 
-    if (exitCode != 0 || !fs::exists(tempCsvPath)) {
+    if (exitCode != 0 || !std::filesystem::exists(tempCsvPath)) {
         return "";
     }
 
@@ -482,7 +543,7 @@ static std::vector<ExcelRowData> ReadExcelCSV(const std::string& filePath, const
     return rows;
 }
 
-static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& data, const std::string& currentSize, const std::string& logosDir, const std::string& iconsDir, const PdfConfig& config, std::set<std::string>& warnings) {
+static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& data, const std::string& currentSize, const std::string& logosDir, const std::string& iconsDir, const PdfConfig& config, const CustomerStyleConfig& styleCfg, std::set<std::string>& warnings) {
     std::ofstream file(filePath, std::ios::binary);
     if (!file.is_open()) return false;
 
@@ -490,23 +551,6 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
     float pageH = MmToPt(297.0f);
 
     std::string upperCustomer = Trim(ToUpper(data.customer));
-    std::string upperStyle = Trim(ToUpper(data.style));
-
-    std::vector<std::string> searchKeys = {
-        upperCustomer + " AND " + upperStyle,
-        upperStyle + " AND " + upperCustomer,
-        upperCustomer,
-        upperStyle,
-        "DEFAULT"
-    };
-
-    CustomerStyleConfig styleCfg;
-    for (const auto& key : searchKeys) {
-        if (config.customerStyles.find(key) != config.customerStyles.end()) {
-            styleCfg = config.customerStyles.at(key);
-            break;
-        }
-    }
 
     bool isBottomLogo = (ToUpper(styleCfg.logoPosition) == "BOTTOM");
     for (const auto& bl : config.bottomLogos) {
@@ -520,10 +564,10 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
 
     PdfImage logoImg;
     if (styleCfg.showLogo && !logosDir.empty() && !data.customer.empty()) {
-        fs::path logoPath = fs::path(Utf8ToWstring(logosDir)) / Utf8ToWstring(data.customer + ".png");
-        if (!fs::exists(logoPath)) logoPath = fs::path(Utf8ToWstring(logosDir)) / Utf8ToWstring(data.customer + ".jpg");
+        std::filesystem::path logoPath = std::filesystem::path(Utf8ToWstring(logosDir)) / Utf8ToWstring(data.customer + ".png");
+        if (!std::filesystem::exists(logoPath)) logoPath = std::filesystem::path(Utf8ToWstring(logosDir)) / Utf8ToWstring(data.customer + ".jpg");
 
-        if (fs::exists(logoPath)) {
+        if (std::filesystem::exists(logoPath)) {
             logoImg = LoadImageAsJpeg(logoPath.wstring(), forceWhiteBg);
         }
         else {
@@ -538,10 +582,10 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
 
         for (int i = 1; i <= 5; ++i) {
             std::string iconName = prefix + std::to_string(i);
-            fs::path iconPath = fs::path(Utf8ToWstring(iconsDir)) / Utf8ToWstring(iconName + ".png");
-            if (!fs::exists(iconPath)) iconPath = fs::path(Utf8ToWstring(iconsDir)) / Utf8ToWstring(iconName + ".jpg");
+            std::filesystem::path iconPath = std::filesystem::path(Utf8ToWstring(iconsDir)) / Utf8ToWstring(iconName + ".png");
+            if (!std::filesystem::exists(iconPath)) iconPath = std::filesystem::path(Utf8ToWstring(iconsDir)) / Utf8ToWstring(iconName + ".jpg");
 
-            if (fs::exists(iconPath)) {
+            if (std::filesystem::exists(iconPath)) {
                 PdfImage iconImg = LoadImageAsJpeg(iconPath.wstring(), forceWhiteBg);
                 if (iconImg.IsValid()) careImages.push_back(iconImg);
             }
@@ -551,8 +595,10 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
         }
     }
 
+    const nlohmann::json& activeLayout = (!styleCfg.layout.empty() && styleCfg.layout.is_array()) ? styleCfg.layout : config.layout;
+
     float globalLogoScale = 0.75f;
-    for (const auto& block : config.layout) {
+    for (const auto& block : activeLayout) {
         if (block.value("type", "") == "logo") {
             globalLogoScale = block.value("size", 75.0f) / 100.0f;
             break;
@@ -593,13 +639,21 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
         }
         };
 
-    for (const auto& block : config.layout) {
+    for (const auto& block : activeLayout) {
         std::string type = block.value("type", "");
         float spacing = block.value("spacing", 4.0f);
         int size = block.value("size", 10);
         bool bold = block.value("bold", false);
 
-        if (type == "logo") {
+        if (type == "text") {
+            std::string content = block.value("content", "");
+            if (!content.empty()) {
+                std::string filteredContent = ApplyLanguageFilter(content, styleCfg.language);
+                AddMultilineText(filteredContent, size, currentY, bold);
+            }
+            currentY -= MmToPt(spacing);
+        }
+        else if (type == "logo") {
             if (styleCfg.showLogo && logoImg.IsValid() && !isBottomLogo) {
                 float maxLogoW = MmToPt(80.0f * globalLogoScale);
                 float maxLogoH = MmToPt(40.0f * globalLogoScale);
@@ -625,7 +679,8 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
                     baseStyleText = data.style;
                 }
                 if (!baseStyleText.empty()) {
-                    AddMultilineText(baseStyleText, size, currentY, bold);
+                    std::string filteredStyleText = ApplyLanguageFilter(baseStyleText, styleCfg.language);
+                    AddMultilineText(filteredStyleText, size, currentY, bold);
                 }
                 currentY -= MmToPt(spacing);
             }
@@ -633,6 +688,7 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
         else if (type == "product") {
             if (styleCfg.showProduct) {
                 std::string pref = config.translations.count("series_label") ? config.translations.at("series_label") : "Seria/Series";
+                pref = ApplyLanguageFilter(pref, styleCfg.language);
                 int prefSize = block.value("prefix_size", size);
                 if (!pref.empty()) AddCenteredText(pref, prefSize, currentY, bold);
 
@@ -647,6 +703,7 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
         else if (type == "size") {
             if (styleCfg.showSize && !currentSize.empty()) {
                 std::string pref = config.translations.count("size_label") ? config.translations.at("size_label") : "Rozmiar/Size";
+                pref = ApplyLanguageFilter(pref, styleCfg.language);
                 int prefSize = block.value("prefix_size", size);
                 if (!pref.empty()) AddCenteredText(pref, prefSize, currentY, bold);
                 AddCenteredText(currentSize, size, currentY, bold);
@@ -656,6 +713,7 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
         else if (type == "care_header") {
             if (styleCfg.showCare) {
                 std::string careText = config.translations.count("care_label") ? config.translations.at("care_label") : "Przepis konserwacji:\nCare instruction:\nPokyny na ošetrovanie:";
+                careText = ApplyLanguageFilter(careText, styleCfg.language);
                 AddMultilineText(careText, size, currentY, bold);
                 currentY -= MmToPt(spacing);
             }
@@ -666,7 +724,6 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
                 float gap = MmToPt(block.value("gap", 2.5f));
                 float totalWidth = (careImages.size() * iconSize) + ((careImages.size() - 1) * gap);
                 float startX = centerX - (totalWidth / 2.0f);
-                currentY -= MmToPt(0.0f);
                 for (size_t i = 0; i < careImages.size(); ++i) {
                     stream << "q " << iconSize << " 0 0 " << iconSize << " " << (startX + i * (iconSize + gap)) << " " << (currentY - iconSize) << " cm /ImCare" << i << " Do Q\n";
                 }
@@ -680,10 +737,12 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
         else if (type == "composition") {
             if (styleCfg.showComposition) {
                 std::string pref = config.translations.count("composition_label") ? config.translations.at("composition_label") : "Tkanina/Fabric/Materiál:";
+                pref = ApplyLanguageFilter(pref, styleCfg.language);
                 if (!pref.empty()) AddCenteredText(pref, size, currentY, bold);
                 std::vector<std::string> materials = SplitAndFormatMaterials(data.composition, config.materialTranslations);
                 for (const auto& mat : materials) {
-                    AddCenteredText(mat, size, currentY, bold);
+                    std::string filteredMat = ApplyLanguageFilter(mat, styleCfg.language);
+                    AddCenteredText(filteredMat, size, currentY, bold);
                 }
                 currentY -= MmToPt(spacing);
             }
@@ -692,22 +751,34 @@ static bool CreateLabelPDF(const std::wstring& filePath, const ExcelRowData& dat
             if (styleCfg.showLining) {
                 if (!data.lining2.empty()) {
                     std::string pref1 = config.translations.count("lining_1_label") ? config.translations.at("lining_1_label") : "Podszewka 1/Lining 1/Podšívka 1:";
+                    pref1 = ApplyLanguageFilter(pref1, styleCfg.language);
                     if (!pref1.empty()) AddCenteredText(pref1, size, currentY, bold);
                     std::vector<std::string> linings1 = SplitAndFormatMaterials(data.lining, config.materialTranslations);
-                    for (const auto& lin : linings1) AddCenteredText(lin, size, currentY, bold);
+                    for (const auto& lin : linings1) {
+                        std::string filteredLin = ApplyLanguageFilter(lin, styleCfg.language);
+                        AddCenteredText(filteredLin, size, currentY, bold);
+                    }
                     currentY -= MmToPt(spacing);
 
                     std::string pref2 = config.translations.count("lining_2_label") ? config.translations.at("lining_2_label") : "Podszewka 2/Lining 2/Podšívka 2:";
+                    pref2 = ApplyLanguageFilter(pref2, styleCfg.language);
                     if (!pref2.empty()) AddCenteredText(pref2, size, currentY, bold);
                     std::vector<std::string> linings2 = SplitAndFormatMaterials(data.lining2, config.materialTranslations);
-                    for (const auto& lin : linings2) AddCenteredText(lin, size, currentY, bold);
+                    for (const auto& lin : linings2) {
+                        std::string filteredLin = ApplyLanguageFilter(lin, styleCfg.language);
+                        AddCenteredText(filteredLin, size, currentY, bold);
+                    }
                     currentY -= MmToPt(spacing);
                 }
                 else if (!data.lining.empty()) {
                     std::string pref = config.translations.count("lining_label") ? config.translations.at("lining_label") : "Podszewka/Lining/Podšívka:";
+                    pref = ApplyLanguageFilter(pref, styleCfg.language);
                     if (!pref.empty()) AddCenteredText(pref, size, currentY, bold);
                     std::vector<std::string> linings = SplitAndFormatMaterials(data.lining, config.materialTranslations);
-                    for (const auto& lin : linings) AddCenteredText(lin, size, currentY, bold);
+                    for (const auto& lin : linings) {
+                        std::string filteredLin = ApplyLanguageFilter(lin, styleCfg.language);
+                        AddCenteredText(filteredLin, size, currentY, bold);
+                    }
                     currentY -= MmToPt(spacing);
                 }
             }
@@ -799,10 +870,10 @@ extern "C" {
         PdfConfig pdfConfig;
         std::set<std::string> warnings;
 
-        if (configJsonPath && fs::exists(configJsonPath)) {
+        if (configJsonPath && std::filesystem::exists(configJsonPath)) {
             try {
                 std::ifstream cFile(configJsonPath);
-                json j;
+                nlohmann::json j;
                 cFile >> j;
                 if (j.contains("excel_column_mapping")) {
                     for (auto& [key, val] : j["excel_column_mapping"].items()) {
@@ -826,19 +897,16 @@ extern "C" {
                 }
                 if (j.contains("customer_styles")) {
                     for (auto& [key, val] : j["customer_styles"].items()) {
-                        CustomerStyleConfig cs;
-                        if (val.contains("bg_color")) cs.bgColor = val["bg_color"].get<std::string>();
-                        if (val.contains("text_color")) cs.textColor = val["text_color"].get<std::string>();
-                        if (val.contains("logo_position")) cs.logoPosition = val["logo_position"].get<std::string>();
-                        if (val.contains("care_prefix")) cs.carePrefix = val["care_prefix"].get<std::string>();
-                        if (val.contains("show_logo")) cs.showLogo = val["show_logo"].get<bool>();
-                        if (val.contains("show_style")) cs.showStyle = val["show_style"].get<bool>();
-                        if (val.contains("show_product")) cs.showProduct = val["show_product"].get<bool>();
-                        if (val.contains("show_size")) cs.showSize = val["show_size"].get<bool>();
-                        if (val.contains("show_care")) cs.showCare = val["show_care"].get<bool>();
-                        if (val.contains("show_composition")) cs.showComposition = val["show_composition"].get<bool>();
-                        if (val.contains("show_lining")) cs.showLining = val["show_lining"].get<bool>();
-                        pdfConfig.customerStyles[ToUpper(key)] = cs;
+                        std::vector<CustomerStyleConfig> vec;
+                        if (val.is_array()) {
+                            for (auto& item : val) {
+                                vec.push_back(ParseCustomerStyleConfig(item));
+                            }
+                        }
+                        else if (val.is_object()) {
+                            vec.push_back(ParseCustomerStyleConfig(val));
+                        }
+                        pdfConfig.customerStyles[ToUpper(key)] = vec;
                     }
                 }
                 if (j.contains("translations")) {
@@ -864,7 +932,7 @@ extern "C" {
         }
 
         if (pdfConfig.layout.empty()) {
-            pdfConfig.layout = json::parse(R"([
+            pdfConfig.layout = nlohmann::json::parse(R"([
                 {"type": "logo", "size": 75.0},
                 {"type": "style", "bold": true, "size": 13, "spacing": 4.0},
                 {"type": "product", "bold": true, "size": 13, "spacing": 6.0},
@@ -880,7 +948,7 @@ extern "C" {
         Gdiplus::GdiplusStartupInput gdiplusStartupInput;
         Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-        fs::path baseOutputDir(Utf8ToWstring(outputDir));
+        std::filesystem::path baseOutputDir(Utf8ToWstring(outputDir));
 
         std::vector<ExcelRowData> rows;
         try {
@@ -891,7 +959,7 @@ extern "C" {
         }
 
         if (rows.empty()) {
-            fs::path reportPath = baseOutputDir / L"log.txt";
+            std::filesystem::path reportPath = baseOutputDir / L"log.txt";
             if (!warnings.empty()) {
                 std::ofstream reportFile(reportPath, std::ios::binary);
                 if (reportFile.is_open()) {
@@ -906,14 +974,14 @@ extern "C" {
             }
 
             Gdiplus::GdiplusShutdown(gdiplusToken);
-            if (effectiveCsvPath != inputFilePath) fs::remove(Utf8ToWstring(effectiveCsvPath));
+            if (effectiveCsvPath != inputFilePath) std::filesystem::remove(Utf8ToWstring(effectiveCsvPath));
             return false;
         }
 
-        if (configJsonPath && fs::exists(configJsonPath)) {
+        if (configJsonPath && std::filesystem::exists(configJsonPath)) {
             try {
                 std::ifstream cFile(configJsonPath);
-                json j;
+                nlohmann::json j;
                 cFile >> j;
                 if (j.contains("logo_mapping")) {
                     auto mapping = j["logo_mapping"];
@@ -943,10 +1011,10 @@ extern "C" {
             catch (...) {}
         }
 
-        fs::path genLabelsDir = baseOutputDir / L"generated_labels";
-        fs::path genLabelsSortedDir = baseOutputDir / L"generated_labels_sorted";
-        fs::create_directories(genLabelsDir);
-        fs::create_directories(genLabelsSortedDir);
+        std::filesystem::path genLabelsDir = baseOutputDir / L"generated_labels";
+        std::filesystem::path genLabelsSortedDir = baseOutputDir / L"generated_labels_sorted";
+        std::filesystem::create_directories(genLabelsDir);
+        std::filesystem::create_directories(genLabelsSortedDir);
 
         int generatedCount = 0;
         int globalPdfCounter = 1;
@@ -1002,37 +1070,62 @@ extern "C" {
                 sizeList.push_back("");
             }
 
+            std::vector<std::string> searchKeys = {
+                upperCust + " AND " + upperStyle,
+                upperStyle + " AND " + upperCust,
+                upperCust,
+                upperStyle,
+                "DEFAULT"
+            };
+
+            std::vector<CustomerStyleConfig> activeStyles;
+            for (const auto& key : searchKeys) {
+                if (pdfConfig.customerStyles.find(key) != pdfConfig.customerStyles.end()) {
+                    activeStyles = pdfConfig.customerStyles.at(key);
+                    break;
+                }
+            }
+            if (activeStyles.empty()) {
+                activeStyles.push_back(CustomerStyleConfig{});
+            }
+
             for (const auto& currentSize : sizeList) {
-                std::string customerFolderName = row.customer.empty() ? "INNI_KLIENCI" : ToUpper(row.customer);
-                customerFolderName = SanitizeFileName(customerFolderName);
+                for (const auto& styleCfg : activeStyles) {
+                    std::string customerFolderName = row.customer.empty() ? "INNI_KLIENCI" : ToUpper(row.customer);
+                    customerFolderName = SanitizeFileName(customerFolderName);
 
-                std::string labelFileName = row.productCode;
-                if (!row.colour.empty()) labelFileName += "_" + row.colour;
-                if (!currentSize.empty()) labelFileName += "-size-" + currentSize;
-                labelFileName = SanitizeFileName(labelFileName);
+                    std::string labelFileName = row.productCode;
+                    if (!row.style.empty()) {
+                        labelFileName += "_" + ToUpper(row.style);
+                    }
+                    if (!row.colour.empty()) labelFileName += "_" + row.colour;
+                    if (!currentSize.empty()) labelFileName += "-size-" + currentSize;
+                    labelFileName += styleCfg.suffix;
+                    labelFileName = SanitizeFileName(labelFileName);
 
-                fs::path clientFolder = genLabelsDir / Utf8ToWstring(customerFolderName);
-                fs::create_directories(clientFolder);
+                    std::filesystem::path clientFolder = genLabelsDir / Utf8ToWstring(customerFolderName);
+                    std::filesystem::create_directories(clientFolder);
 
-                fs::path pdfPath1 = clientFolder / Utf8ToWstring(labelFileName + ".pdf");
-                if (CreateLabelPDF(pdfPath1.wstring(), row, currentSize, logosDir, iconsDir, pdfConfig, warnings)) {
-                    generatedCount++;
-                }
-                else {
-                    warnings.insert("[ZAPIS] Błąd zapisu pliku PDF: " + labelFileName + " (Klient: " + customerFolderName + ")");
-                }
+                    std::filesystem::path pdfPath1 = clientFolder / Utf8ToWstring(labelFileName + ".pdf");
+                    if (CreateLabelPDF(pdfPath1.wstring(), row, currentSize, logosDir, iconsDir, pdfConfig, styleCfg, warnings)) {
+                        generatedCount++;
+                    }
+                    else {
+                        warnings.insert("[ZAPIS] Błąd zapisu pliku PDF: " + labelFileName + " (Klient: " + customerFolderName + ")");
+                    }
 
-                std::stringstream ssSorted;
-                ssSorted << std::setw(4) << std::setfill('0') << globalPdfCounter++ << "_" << labelFileName << ".pdf";
-                fs::path pdfPath2 = genLabelsSortedDir / Utf8ToWstring(ssSorted.str());
+                    std::stringstream ssSorted;
+                    ssSorted << std::setw(4) << std::setfill('0') << globalPdfCounter++ << "_" << labelFileName << ".pdf";
+                    std::filesystem::path pdfPath2 = genLabelsSortedDir / Utf8ToWstring(ssSorted.str());
 
-                if (!CreateLabelPDF(pdfPath2.wstring(), row, currentSize, logosDir, iconsDir, pdfConfig, warnings)) {
-                    warnings.insert("[ZAPIS] Błąd zapisu posortowanego pliku PDF: " + ssSorted.str());
+                    if (!CreateLabelPDF(pdfPath2.wstring(), row, currentSize, logosDir, iconsDir, pdfConfig, styleCfg, warnings)) {
+                        warnings.insert("[ZAPIS] Błąd zapisu posortowanego pliku PDF: " + ssSorted.str());
+                    }
                 }
             }
         }
 
-        fs::path reportPath = baseOutputDir / L"log.txt";
+        std::filesystem::path reportPath = baseOutputDir / L"log.txt";
         if (!warnings.empty()) {
             std::ofstream reportFile(reportPath, std::ios::binary);
             if (reportFile.is_open()) {
@@ -1046,13 +1139,13 @@ extern "C" {
             }
         }
         else {
-            if (fs::exists(reportPath)) {
-                fs::remove(reportPath);
+            if (std::filesystem::exists(reportPath)) {
+                std::filesystem::remove(reportPath);
             }
         }
 
         Gdiplus::GdiplusShutdown(gdiplusToken);
-        if (effectiveCsvPath != inputFilePath) fs::remove(Utf8ToWstring(effectiveCsvPath));
+        if (effectiveCsvPath != inputFilePath) std::filesystem::remove(Utf8ToWstring(effectiveCsvPath));
         return generatedCount > 0;
     }
 

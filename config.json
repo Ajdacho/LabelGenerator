@@ -71,7 +71,91 @@
       "show_care": true,
       "show_composition": true,
       "show_lining": false
-    }
+    },
+    "XAWER": [
+      {
+        "suffix": "_care",
+        "language": "pl_en",
+        "bg_color": "#FFFFFF",
+        "text_color": "#000000",
+        "show_logo": false,
+        "show_style": true,
+        "show_product": true,
+        "show_size": true,
+        "show_care": true,
+        "show_composition": true,
+        "show_lining": true,
+        "layout": [
+          {
+            "type": "text",
+            "content": "XAWER",
+            "bold": true,
+            "size": 13,
+            "spacing": 8.0
+          },
+          { "type": "style", "bold": true, "size": 13, "spacing": 4.0 },
+          { "type": "product", "bold": true, "size": 13, "spacing": 6.0 },
+          { 
+		  "type": "text",
+		  "content": "Rozmiar/Size\n50/176",
+		  "bold": true, 
+		  "size": 13, 
+		  "spacing": 6.0 
+		  },
+          { "type": "composition", "bold": false, "size": 10, "spacing": 3.0 },
+          { "type": "lining", "bold": false, "size": 10, "spacing": 6.0 },
+          { "type": "care_header", "bold": false, "size": 10, "spacing": 0.0 },
+          { "type": "care_symbols", "size": 6.0, "gap": 2.5, "spacing": 6.0 }
+        ]
+      },
+      {
+        "suffix": "_sticker",
+        "language": "pl_en",
+        "bg_color": "#FFFFFF",
+        "text_color": "#000000",
+        "show_logo": false,
+        "show_style": true,
+        "show_product": true,
+        "show_size": true,
+        "show_care": false,
+        "show_composition": true,
+        "show_lining": true,
+        "layout": [
+          {
+            "type": "text",
+            "content": "XAWER Sp. z o. o.",
+            "bold": true,
+            "size": 13,
+            "spacing": 1.0
+          },
+		  {
+            "type": "text",
+            "content": "Ul. Witkiewicza 51",
+            "bold": true,
+            "size": 13,
+            "spacing": 1.0
+          },
+		            {
+            "type": "text",
+            "content": "48-300 Jędrzychów",
+            "bold": true,
+            "size": 13,
+            "spacing": 1.0
+          },
+          { "type": "style", "bold": true, "size": 13, "spacing": 4.0 },
+          { "type": "product", "bold": true, "size": 13, "spacing": 6.0 },
+          { 
+		  "type": "text",
+		  "content": "Rozmiar/Size\n50/176",
+		  "bold": true, 
+		  "size": 13, 
+		  "spacing": 6.0 
+		  },
+          { "type": "composition", "bold": false, "size": 10, "spacing": 3.0 },
+          { "type": "lining", "bold": false, "size": 10, "spacing": 6.0 }
+        ]
+      }
+    ]
   },
   "bottom_logos": [
     "Marco Cadini"
@@ -188,7 +272,7 @@
     "SE": "jedwab/silk/hodváb",
     "SILK": "jedwab/silk/hodváb",
     "JEDWAB": "jedwab/silk/hodváb",
-	"MD": "modal",
-	"MODAL" : "modal"
+    "MD": "modal",
+    "MODAL": "modal"
   }
 }

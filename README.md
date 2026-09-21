@@ -1,6 +1,6 @@
 # LabelGeneratorGUI - Technical Documentation
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Author:** Filip Cieśla  
 **Platform:** Windows 10/11 (Standalone / Loose Files Deployment)  
 **Framework:** Windows App SDK (WinUI 3) / C++ WinRT  
@@ -11,25 +11,25 @@
 
 **LabelGeneratorGUI** is a highly optimized, self-contained desktop application designed to automate the mass production of customized, print-ready PDF product and care labels.
 
-Instead of relying on bloated third-party libraries for core functionalities, the application utilizes native Windows APIs and pure C++ implementations. It seamlessly bridges raw Excel order data with a highly flexible JSON-based ruleset to generate thousands of dynamically styled labels in seconds.
+Instead of relying on bloated third-party libraries for core functionalities, the application utilizes native Windows APIs, lightweight C libraries, and pure C++ implementations. It seamlessly bridges raw Excel order data with a highly flexible JSON-based ruleset to generate thousands of dynamically styled labels in seconds.
 
 ---
 
 ## 2. System Architecture & Label Engine Operations
 
-The core of the application is the custom-built **Label Engine**, which operates without external heavy dependencies like Poppler or PDFium.
+The core of the application is the custom-built **Label Engine**, which operates without external heavy rendering dependencies like Poppler or PDFium.
 
 ### 2.1. Raw PDF Generation Engine
-The PDF rendering engine is implemented entirely from scratch in C++. It manually constructs the PDF file structure byte by byte:
-*   **Object Management:** The engine dynamically assigns object IDs, creates PDF dictionaries (e.g., `<< /Type /Page >>`), and builds the XREF (cross-reference) table required for valid PDF structure.
+The PDF rendering engine is implemented utilizing the lightweight `pdfgen` C library alongside native C++ byte streams:
+*   **Object Management & Streams:** The engine dynamically creates PDF documents, page objects, and handles strict point-based layout coordinates.
 *   **Coordinate System:** The layout relies on a strict X/Y coordinate system (bottom-left origin), recalculating vertical offsets dynamically based on the `layout` array defined in `config.json`.
-*   **Stream Compression:** Text and graphics operations (like `BT`, `ET`, `Tm` for text matrices) are written as raw streams.
+*   **Stream Compression & Text Rendering:** Text operations and graphic vectors are rendered directly to PDF graphics contexts.
 
 ### 2.2. Image Processing via GDI+
 To embed logos and care icons, the engine uses native Windows GDI+:
 *   Images (PNG/JPG) are loaded into memory.
 *   The engine calculates the correct aspect ratio and scales the bounding boxes according to the PDF's point system.
-*   The raw pixel data is extracted, converted, and injected directly into the PDF object streams as XObjects.
+*   The raw pixel data is extracted, converted, and injected directly into the PDF streams.
 
 ### 2.3. Data Ingestion (Excel to CSV)
 To avoid the overhead of C++ Excel SDKs, the engine executes a lightweight, hidden PowerShell COM interop script. This script rapidly converts the target `.xlsx` worksheet into a `.csv` file in a temporary location, allowing the C++ backend to parse the rows sequentially at maximum speed.
@@ -55,7 +55,7 @@ For detailed instructions on using and modifying the application, please refer t
 *   **`edycja_konfiguracji.txt`**  
     Comprehensive manual (in Polish) for editing the `config.json` file, explaining syntax rules (JSON comma rules) and property definitions to prevent critical crashes.
 *   **`credits.txt`**  
-    Information about the author, version details, and a list of utilized third-party libraries (e.g., `nlohmann/json`).
+    Information about the author, version details, and a list of utilized third-party libraries (`pdfgen`, `nlohmann/json`).
 
 ---
 

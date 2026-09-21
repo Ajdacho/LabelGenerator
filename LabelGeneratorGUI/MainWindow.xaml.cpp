@@ -33,7 +33,7 @@
 
 using json = nlohmann::json;
 
-const std::string CURRENT_APP_VERSION = "1.0";
+const std::string CURRENT_APP_VERSION = "1.1";
 
 static std::filesystem::path GetExeDirPath()
 {
